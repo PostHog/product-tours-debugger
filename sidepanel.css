@@ -1,0 +1,419 @@
+:root {
+  --bg-primary: #1d1f27;
+  --bg-secondary: #2a2c35;
+  --bg-tertiary: #353740;
+  --accent-orange: #F54E00;
+  --accent-blue: #1D4AFF;
+  --text-primary: #EEEFE9;
+  --text-secondary: #9BA0AA;
+  --text-muted: #6B7080;
+  --status-success: #3CCF4E;
+  --status-error: #F44336;
+  --status-warning: #F9BD2B;
+  --border: #3a3d48;
+  --radius: 6px;
+  --radius-lg: 8px;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 13px;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  line-height: 1.5;
+  overflow-y: auto;
+  min-height: 100vh;
+}
+
+/* Header */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.header-logo {
+  width: 28px;
+  height: 28px;
+}
+
+.header-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+/* Buttons */
+.btn-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.btn-icon:hover {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: none;
+  border-radius: var(--radius);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, opacity 0.15s;
+  color: var(--text-primary);
+}
+
+.btn-primary {
+  background: var(--accent-orange);
+}
+
+.btn-primary:hover {
+  opacity: 0.9;
+}
+
+.btn-secondary {
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+}
+
+.btn-secondary:hover {
+  background: var(--border);
+  color: var(--text-primary);
+}
+
+.btn-small {
+  padding: 4px 8px;
+  font-size: 11px;
+}
+
+.btn-danger {
+  background: transparent;
+  border: 1px solid var(--status-error);
+  color: var(--status-error);
+}
+
+.btn-danger:hover {
+  background: var(--status-error);
+  color: white;
+}
+
+/* Status Bar */
+.status-bar {
+  padding: 10px 16px;
+  font-size: 12px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.status-bar.status-ok {
+  background: rgba(60, 207, 78, 0.08);
+  border-left: 3px solid var(--status-success);
+}
+
+.status-bar.status-warn {
+  background: rgba(249, 189, 43, 0.08);
+  border-left: 3px solid var(--status-warning);
+}
+
+.status-bar.status-error {
+  background: rgba(244, 67, 54, 0.08);
+  border-left: 3px solid var(--status-error);
+}
+
+.status-line {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.status-dot.green { background: var(--status-success); }
+.status-dot.yellow { background: var(--status-warning); }
+.status-dot.red { background: var(--status-error); }
+
+/* Main Content */
+.main-content {
+  padding: 12px;
+}
+
+/* Active Tour Banner */
+.active-tour-banner {
+  background: rgba(245, 78, 0, 0.08);
+  border: 1px solid var(--accent-orange);
+  border-radius: var(--radius-lg);
+  padding: 12px;
+  margin-bottom: 12px;
+}
+
+.active-tour-banner-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.active-tour-banner-label {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--accent-orange);
+  margin-bottom: 4px;
+}
+
+.active-tour-banner-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.active-tour-banner-step {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.active-tour-actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+/* Global Actions */
+.global-actions {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+/* Tour Card */
+.tour-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 12px;
+  margin-bottom: 10px;
+}
+
+.tour-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.tour-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  word-break: break-word;
+}
+
+.tour-id {
+  font-size: 11px;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-family: monospace;
+  transition: color 0.15s;
+}
+
+.tour-id:hover {
+  color: var(--text-secondary);
+}
+
+.tour-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+/* Badges */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.badge-blue {
+  background: rgba(29, 74, 255, 0.15);
+  color: #5B8AFF;
+}
+
+.badge-orange {
+  background: rgba(245, 78, 0, 0.15);
+  color: #FF8A50;
+}
+
+.badge-green {
+  background: rgba(60, 207, 78, 0.15);
+  color: var(--status-success);
+}
+
+.badge-gray {
+  background: rgba(155, 160, 170, 0.15);
+  color: var(--text-secondary);
+}
+
+.badge-red {
+  background: rgba(244, 67, 54, 0.15);
+  color: var(--status-error);
+}
+
+.badge-yellow {
+  background: rgba(249, 189, 43, 0.15);
+  color: var(--status-warning);
+}
+
+/* Eligibility Checklist */
+.eligibility {
+  margin: 8px 0;
+  padding: 8px;
+  background: var(--bg-primary);
+  border-radius: var(--radius);
+}
+
+.eligibility-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+}
+
+.eligibility-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  padding: 2px 0;
+}
+
+.eligibility-icon {
+  font-size: 13px;
+  width: 16px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.eligibility-icon.pass { color: var(--status-success); }
+.eligibility-icon.fail { color: var(--status-error); }
+.eligibility-icon.warn { color: var(--status-warning); }
+.eligibility-icon.na { color: var(--text-muted); }
+
+/* Storage Badges in Tour Card */
+.tour-storage {
+  display: flex;
+  gap: 6px;
+  margin: 8px 0;
+}
+
+/* Tour Actions */
+.tour-actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+
+/* Empty State */
+.empty-state {
+  text-align: center;
+  padding: 32px 16px;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+/* Loading */
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  color: var(--text-muted);
+}
+
+.spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--border);
+  border-top-color: var(--accent-orange);
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+  margin-right: 8px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Scrollbar - hidden */
+::-webkit-scrollbar {
+  display: none;
+}
+
+body {
+  scrollbar-width: none;
+}
+
+/* Copied tooltip */
+.copied-tooltip {
+  position: fixed;
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  padding: 4px 8px;
+  border-radius: var(--radius);
+  font-size: 11px;
+  pointer-events: none;
+  z-index: 100;
+  animation: fadeOut 1s ease forwards;
+}
+
+@keyframes fadeOut {
+  0%, 70% { opacity: 1; }
+  100% { opacity: 0; }
+}
