@@ -160,6 +160,11 @@ body {
   gap: 6px;
 }
 
+.status-hint {
+  font-size: 11px;
+  color: #999;
+}
+
 .status-dot {
   width: 8px;
   height: 8px;
