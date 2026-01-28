@@ -500,7 +500,6 @@ async function pollActiveTour() {
   const newActive = JSON.stringify(state.storage.activeTour);
 
   if (prevActive !== newActive) {
-    await fetchActiveTours();
     renderTours();
   }
 }
