@@ -4,7 +4,8 @@
   "private": true,
   "description": "Debug PostHog Product Tours",
   "scripts": {
-    "version": "node scripts/sync-manifest-version.mjs"
+    "version": "node scripts/sync-manifest-version.mjs",
+    "changeset-version": "changeset version && npm run version"
   },
   "devDependencies": {
     "@changesets/cli": "^2.27.0"
