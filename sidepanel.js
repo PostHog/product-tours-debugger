@@ -126,7 +126,7 @@ function renderStatus() {
         <button class="btn btn-primary btn-small" id="enableDebugBtn">Enable Debug &amp; Reload</button>
         <span class="status-hint">Reloads with ?__posthog_debug=true to expose the PostHog instance</span>
       </div>`;
-    document.getElementById('enableDebugBtn')?.addEventListener('click', enableDebugAndReload);
+    // listener handled via event delegation on document.body
   } else if (!state.versionOk) {
     statusBar.className = 'status-bar status-error';
     statusBar.innerHTML = `
@@ -467,6 +467,9 @@ function enableDebugAndReload() {
     if (!url.searchParams.has('__posthog_debug')) {
       url.searchParams.set('__posthog_debug', 'true');
       chrome.tabs.update(tab.id, { url: url.toString() });
+    } else {
+      // Param already present — just reload to retry detection
+      chrome.tabs.reload(tab.id);
     }
   });
 }
@@ -502,6 +505,12 @@ document.body.addEventListener('click', (e) => {
     const tourId = actionBtn.dataset.tourId;
     const payload = tourId ? { tourId } : undefined;
     doAction(action, payload);
+    return;
+  }
+
+  // enableDebugBtn
+  if (e.target.closest('#enableDebugBtn')) {
+    enableDebugAndReload();
     return;
   }
 
