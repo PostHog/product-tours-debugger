@@ -23,6 +23,7 @@ const state = {
   tours: [],
   toursContext: null,
   flags: {},
+  flagDetails: {},
   storage: { shown: {}, completed: {}, dismissed: {}, activeTour: null }
 };
 
@@ -87,6 +88,7 @@ async function fetchTours() {
 async function fetchFlags() {
   const res = await sendAction('getFlags');
   state.flags = res.data?.flags || {};
+  state.flagDetails = res.data?.flagDetails || {};
 }
 
 async function fetchStorage() {
@@ -119,7 +121,12 @@ function renderStatus() {
       <div class="status-line">
         <span class="status-dot red"></span>
         <span>posthog-js not detected on this page</span>
+      </div>
+      <div class="status-line">
+        <button class="btn btn-primary btn-small" id="enableDebugBtn">Enable Debug &amp; Reload</button>
+        <span class="status-hint">Reloads with ?__posthog_debug=true to expose the PostHog instance</span>
       </div>`;
+    document.getElementById('enableDebugBtn')?.addEventListener('click', enableDebugAndReload);
   } else if (!state.versionOk) {
     statusBar.className = 'status-bar status-error';
     statusBar.innerHTML = `
@@ -317,7 +324,10 @@ function renderEligibility(tour) {
   if (tour.internal_targeting_flag_key) {
     const flagVal = state.flags[tour.internal_targeting_flag_key];
     const pass = flagVal !== undefined && flagVal !== false && flagVal !== null;
-    html += eligibilityItem(pass, `Targeting flag: ${pass ? 'Enabled' : 'Disabled'}`);
+    const reason = getFlagReason(tour.internal_targeting_flag_key);
+    const label = pass ? 'Enabled' : 'Disabled';
+    const reasonText = reason ? ` — ${reason}` : '';
+    html += eligibilityItem(pass, `Targeting flag: ${label}${reasonText}`);
   } else {
     html += eligibilityItem(null, 'Targeting flag: Not set');
   }
@@ -326,19 +336,21 @@ function renderEligibility(tour) {
   if (tour.linked_flag_key) {
     const flagVal = state.flags[tour.linked_flag_key];
     const flagEnabled = flagVal !== undefined && flagVal !== false && flagVal !== null;
+    const reason = getFlagReason(tour.linked_flag_key);
+    const reasonText = reason ? ` — ${reason}` : '';
     const variant = tour.conditions?.linkedFlagVariant;
 
     if (variant) {
       const variantMatch = variant === 'any' || flagVal === variant;
       const pass = flagEnabled && variantMatch;
       const detail = !flagEnabled
-        ? 'Disabled'
+        ? `Disabled${reasonText}`
         : variantMatch
           ? `Enabled (variant: ${variant})`
           : `Wrong variant (expected: ${variant}, got: ${flagVal})`;
       html += eligibilityItem(pass, `Linked flag: ${detail}`);
     } else {
-      html += eligibilityItem(flagEnabled, `Linked flag: ${flagEnabled ? 'Enabled' : 'Disabled'}`);
+      html += eligibilityItem(flagEnabled, `Linked flag: ${flagEnabled ? 'Enabled' : `Disabled${reasonText}`}`);
     }
   } else {
     html += eligibilityItem(null, 'Linked flag: Not set');
@@ -395,6 +407,12 @@ function findTourById(tourId) {
   return state.tours.find((t) => t.id === tourId);
 }
 
+function getFlagReason(flagKey) {
+  const detail = state.flagDetails[flagKey];
+  if (!detail?.reason) return null;
+  return detail.reason.description || detail.reason.code || null;
+}
+
 function formatDate(dateStr) {
   try {
     const d = new Date(dateStr);
@@ -437,6 +455,20 @@ function doesTourUrlMatch(tour) {
   }
 
   return false;
+}
+
+// --- Enable Debug ---
+function enableDebugAndReload() {
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    const tab = tabs[0];
+    if (!tab?.url || !tab.id) return;
+
+    const url = new URL(tab.url);
+    if (!url.searchParams.has('__posthog_debug')) {
+      url.searchParams.set('__posthog_debug', 'true');
+      chrome.tabs.update(tab.id, { url: url.toString() });
+    }
+  });
 }
 
 // --- Event Handlers ---

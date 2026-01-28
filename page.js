@@ -10,7 +10,7 @@ if (!window.__PH_TOUR_DEBUGGER_INJECTED__) {
   }
 
   function getPostHog() {
-    return window.posthog;
+    return window.posthog || window.__POSTHOG_INSTANCE__;
   }
 
   function respond(requestId, action, data, error) {
@@ -71,7 +71,13 @@ if (!window.__PH_TOUR_DEBUGGER_INJECTED__) {
     }
     try {
       const flags = ph.featureFlags.getFlagVariants();
-      respond(requestId, 'getFlags', { flags: serialize(flags) });
+      const flagDetails = {};
+      if (ph.featureFlags.getFeatureFlagDetails) {
+        for (const key of Object.keys(flags)) {
+          flagDetails[key] = ph.featureFlags.getFeatureFlagDetails(key);
+        }
+      }
+      respond(requestId, 'getFlags', { flags: serialize(flags), flagDetails: serialize(flagDetails) });
     } catch (e) {
       respond(requestId, 'getFlags', null, e.message);
     }
