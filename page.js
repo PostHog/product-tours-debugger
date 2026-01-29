@@ -311,6 +311,10 @@ if (!window.__PH_TOUR_DEBUGGER_INJECTED__) {
     return String(value).replace(/[^a-zA-Z0-9_-]/g, '\\$&');
   }
 
+  function escapeCssAttributeValue(value) {
+    return String(value).replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+  }
+
   function buildSelector(el) {
     const tag = el.tagName.toLowerCase();
     const id = el.id ? `#${escapeCss(el.id)}` : '';
@@ -320,7 +324,7 @@ if (!window.__PH_TOUR_DEBUGGER_INJECTED__) {
     for (const attr of dataAttrs) {
       const val = el.getAttribute?.(attr);
       if (val) {
-        return `${tag}[${attr}="${String(val).replace(/"/g, '\\"')}"]`;
+        return `${tag}[${attr}="${escapeCssAttributeValue(val)}"]`;
       }
     }
 
@@ -350,7 +354,7 @@ if (!window.__PH_TOUR_DEBUGGER_INJECTED__) {
         for (const attr of dataAttrs) {
           const val = current.getAttribute?.(attr);
           if (val) {
-            dataSelector = `${tag}[${attr}="${String(val).replace(/"/g, '\\"')}"]`;
+            dataSelector = `${tag}[${attr}="${escapeCssAttributeValue(val)}"]`;
             break;
           }
         }
