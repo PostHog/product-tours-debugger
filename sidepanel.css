@@ -81,6 +81,15 @@ body {
   color: var(--text-primary);
 }
 
+.btn-icon.is-loading {
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.btn-icon.is-loading svg {
+  animation: spin 0.6s linear infinite;
+}
+
 .btn {
   display: inline-flex;
   align-items: center;
@@ -137,6 +146,93 @@ body {
   display: flex;
   flex-direction: column;
   gap: 4px;
+}
+
+/* Filter Bar */
+.filter-bar {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-secondary);
+}
+
+.filter-input {
+  width: 100%;
+  padding: 6px 10px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: 12px;
+}
+
+.filter-input::placeholder {
+  color: var(--text-muted);
+}
+
+/* Selector Tester */
+.selector-tester {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-secondary);
+}
+
+.selector-tester-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.selector-input {
+  flex: 1;
+  padding: 6px 10px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: 12px;
+}
+
+.selector-input::placeholder {
+  color: var(--text-muted);
+}
+
+.selector-result {
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.selector-result.ok {
+  color: var(--status-success);
+}
+
+.selector-result.fail {
+  color: var(--status-error);
+}
+
+.selector-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.selector-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.selector-select {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 2px 6px;
+  font-size: 12px;
 }
 
 .status-bar.status-ok {
@@ -416,6 +512,26 @@ body {
   pointer-events: none;
   z-index: 100;
   animation: fadeOut 1s ease forwards;
+}
+
+/* Toast */
+.toast {
+  position: fixed;
+  bottom: 10px;
+  right: 10px;
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  padding: 8px 10px;
+  border-radius: var(--radius);
+  font-size: 12px;
+  border: 1px solid var(--border);
+  z-index: 100;
+  max-width: 280px;
+}
+
+.toast.error {
+  border-color: var(--status-error);
+  color: var(--status-error);
 }
 
 @keyframes fadeOut {

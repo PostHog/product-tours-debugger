@@ -1,4 +1,5 @@
 const MIN_VERSION = '1.324.0';
+const POLL_INTERVAL_MS = 1000;
 
 function meetsMinVersion(version) {
   if (!version) return false;
@@ -24,13 +25,23 @@ const state = {
   toursContext: null,
   flags: {},
   flagDetails: {},
-  storage: { shown: {}, completed: {}, dismissed: {}, activeTour: null }
+  storage: { shown: {}, completed: {}, dismissed: {}, activeTour: null },
+  filterText: '',
+  loading: false
 };
 
 // --- DOM refs ---
 const statusBar = document.getElementById('statusBar');
 const toursPanel = document.getElementById('toursPanel');
 const refreshBtn = document.getElementById('refreshBtn');
+const tourFilterInput = document.getElementById('tourFilterInput');
+const selectorInput = document.getElementById('selectorInput');
+const selectorTestBtn = document.getElementById('selectorTestBtn');
+const selectorPickBtn = document.getElementById('selectorPickBtn');
+const selectorResult = document.getElementById('selectorResult');
+const selectorMode = document.getElementById('selectorMode');
+const selectorPreferData = document.getElementById('selectorPreferData');
+const selectorUseNthChild = document.getElementById('selectorUseNthChild');
 
 // --- Messaging ---
 function getActiveTabId() {
@@ -100,17 +111,29 @@ async function fetchStorage() {
   }
 }
 
+function setLoading(isLoading) {
+  state.loading = isLoading;
+  refreshBtn.classList.toggle('is-loading', isLoading);
+}
+
 async function refreshAll() {
-  await detect();
-  renderStatus();
+  try {
+    setLoading(true);
+    renderLoading();
+    await detect();
+    renderStatus();
 
-  if (state.posthogDetected && state.versionOk && state.toursEnabled) {
-    await Promise.all([fetchTours(), fetchFlags(), fetchStorage()]);
-  } else if (state.posthogDetected && state.versionOk) {
-    await Promise.all([fetchFlags(), fetchStorage()]);
+    if (state.posthogDetected && state.versionOk && state.toursEnabled) {
+      await Promise.all([fetchTours(), fetchFlags(), fetchStorage()]);
+    } else if (state.posthogDetected && state.versionOk) {
+      await Promise.all([fetchFlags(), fetchStorage()]);
+    }
+  } catch (error) {
+    showToast(error?.message || 'Refresh failed', 'error');
+  } finally {
+    setLoading(false);
+    renderAll();
   }
-
-  renderAll();
 }
 
 // --- Rendering ---
@@ -175,6 +198,11 @@ function renderTours() {
     return;
   }
 
+  if (state.loading) {
+    renderLoading();
+    return;
+  }
+
   let html = '';
 
   // Active tour/announcement banner
@@ -217,15 +245,133 @@ function renderTours() {
       <button class="btn btn-secondary btn-small" data-action="clearCache">Clear Cache</button>
     </div>`;
 
-  if (state.tours.length === 0) {
-    html += '<div class="empty-state">No tours found</div>';
+  const filteredTours = state.tours.filter((tour) => {
+    if (!state.filterText) return true;
+    const id = String(tour.id || '').toLowerCase();
+    const name = String(tour.name || '').toLowerCase();
+    const query = state.filterText.toLowerCase();
+    return id.includes(query) || name.includes(query);
+  });
+
+  if (filteredTours.length === 0) {
+    html += state.filterText
+      ? '<div class="empty-state">No tours match the filter</div>'
+      : '<div class="empty-state">No tours found</div>';
   } else {
-    for (const tour of state.tours) {
+    for (const tour of filteredTours) {
       html += renderTourCard(tour);
     }
   }
 
   toursPanel.innerHTML = html;
+}
+
+function renderLoading() {
+  toursPanel.innerHTML = `
+    <div class="loading">
+      <span class="spinner"></span>
+      <span>Loading tours...</span>
+    </div>`;
+}
+
+let pickInProgress = false;
+let lastPickedData = null;
+
+function getPickerOptions() {
+  return {
+    mode: selectorMode?.value || 'unique',
+    preferDataAttributes: selectorPreferData?.checked !== false,
+    useNthChild: selectorUseNthChild?.checked === true
+  };
+}
+
+function setPickInProgress(isPicking) {
+  pickInProgress = isPicking;
+  if (selectorPickBtn) {
+    selectorPickBtn.disabled = isPicking;
+    selectorPickBtn.textContent = isPicking ? 'Picking...' : 'Pick';
+  }
+}
+
+function updatePickDisplay() {
+  if (!lastPickedData) return;
+  const data = lastPickedData;
+  const preferMode = getPickerOptions().mode;
+  const selector = preferMode === 'simple'
+    ? (data.selector || data.uniqueSelector || '')
+    : (data.uniqueSelector || data.selector || '');
+  if (selectorInput) selectorInput.value = selector;
+
+  if (selectorResult) {
+    const idText = data.id ? `#${data.id}` : 'No ID';
+    const classesText = (data.classes || []).length ? `.${data.classes.join('.')}` : 'No classes';
+    selectorResult.className = 'selector-result ok';
+    const simple = data.selector ? `Simple: ${data.selector}` : '';
+    const unique = data.uniqueSelector ? `Unique: ${data.uniqueSelector}` : '';
+    selectorResult.textContent = `Picked ${data.tag || 'element'} (${idText}, ${classesText})${simple ? ` — ${simple}` : ''}${unique ? ` — ${unique}` : ''}`;
+  }
+}
+
+async function testSelector() {
+  const selector = selectorInput?.value.trim();
+  if (!selector) {
+    showToast('Enter a CSS selector to test', 'error');
+    if (selectorResult) {
+      selectorResult.className = 'selector-result';
+      selectorResult.textContent = '';
+    }
+    return;
+  }
+
+  if (selectorResult) {
+    selectorResult.className = 'selector-result';
+    selectorResult.textContent = 'Checking...';
+  }
+
+  const res = await sendAction('highlightSelector', { selector });
+  if (res.error) {
+    showToast(res.error, 'error');
+    if (selectorResult) {
+      selectorResult.className = 'selector-result fail';
+      selectorResult.textContent = 'Selector check failed';
+    }
+    return;
+  }
+
+  const data = res.data || {};
+  const found = !!data.found;
+  const count = Number(data.count || 0);
+  const visible = Number(data.visible || 0);
+
+  if (selectorResult) {
+    selectorResult.className = `selector-result ${found ? 'ok' : 'fail'}`;
+    selectorResult.textContent = found
+      ? `Found ${count} element(s), ${visible} visible`
+      : 'No elements found';
+  }
+}
+
+async function pickSelector() {
+  if (pickInProgress) return;
+  setPickInProgress(true);
+  showToast('Click an element on the page', 'info');
+
+  const res = await sendAction('startPickSelector', getPickerOptions());
+  if (res.error) {
+    showToast(res.error, 'error');
+    if (selectorResult) {
+      selectorResult.className = 'selector-result fail';
+      selectorResult.textContent = res.error;
+    }
+    await sendAction('cancelPickSelector');
+    setPickInProgress(false);
+    return;
+  }
+
+  lastPickedData = res.data || null;
+  updatePickDisplay();
+
+  setPickInProgress(false);
 }
 
 function renderTourCard(tour) {
@@ -482,8 +628,17 @@ async function doAction(action, payload) {
   const res = await sendAction(action, payload);
   if (res.error) {
     console.warn(`Action ${action} failed:`, res.error);
+    showToast(res.error, 'error');
   }
   await refreshAll();
+}
+
+function showToast(message, type = 'info') {
+  const el = document.createElement('div');
+  el.className = `toast${type === 'error' ? ' error' : ''}`;
+  el.textContent = String(message || 'Something went wrong');
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 2500);
 }
 
 function showCopiedTooltip() {
@@ -547,7 +702,7 @@ async function pollActiveTour() {
 
 function startPolling() {
   stopPolling();
-  pollTimer = setInterval(pollActiveTour, 1000);
+  pollTimer = setInterval(pollActiveTour, POLL_INTERVAL_MS);
 }
 
 function stopPolling() {
@@ -570,3 +725,34 @@ chrome.tabs.onUpdated.addListener((_tabId, changeInfo) => {
 
 // --- Init ---
 refreshAll().then(startPolling);
+
+tourFilterInput?.addEventListener('input', (e) => {
+  state.filterText = e.target.value.trim();
+  renderTours();
+});
+
+selectorTestBtn?.addEventListener('click', () => {
+  testSelector();
+});
+
+selectorInput?.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    testSelector();
+  }
+});
+
+selectorPickBtn?.addEventListener('click', () => {
+  pickSelector();
+});
+
+selectorMode?.addEventListener('change', () => {
+  updatePickDisplay();
+});
+
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) {
+    stopPolling();
+  } else {
+    refreshAll().then(startPolling);
+  }
+});
