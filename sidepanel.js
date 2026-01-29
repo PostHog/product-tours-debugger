@@ -25,7 +25,8 @@ const state = {
   flags: {},
   flagDetails: {},
   storage: { shown: {}, completed: {}, dismissed: {}, activeTour: null },
-  filterText: ''
+  filterText: '',
+  loading: false
 };
 
 // --- DOM refs ---
@@ -102,17 +103,27 @@ async function fetchStorage() {
   }
 }
 
+function setLoading(isLoading) {
+  state.loading = isLoading;
+  refreshBtn.classList.toggle('is-loading', isLoading);
+}
+
 async function refreshAll() {
-  await detect();
-  renderStatus();
+  try {
+    setLoading(true);
+    renderLoading();
+    await detect();
+    renderStatus();
 
-  if (state.posthogDetected && state.versionOk && state.toursEnabled) {
-    await Promise.all([fetchTours(), fetchFlags(), fetchStorage()]);
-  } else if (state.posthogDetected && state.versionOk) {
-    await Promise.all([fetchFlags(), fetchStorage()]);
+    if (state.posthogDetected && state.versionOk && state.toursEnabled) {
+      await Promise.all([fetchTours(), fetchFlags(), fetchStorage()]);
+    } else if (state.posthogDetected && state.versionOk) {
+      await Promise.all([fetchFlags(), fetchStorage()]);
+    }
+  } finally {
+    setLoading(false);
+    renderAll();
   }
-
-  renderAll();
 }
 
 // --- Rendering ---
@@ -177,6 +188,11 @@ function renderTours() {
     return;
   }
 
+  if (state.loading) {
+    renderLoading();
+    return;
+  }
+
   let html = '';
 
   // Active tour/announcement banner
@@ -238,6 +254,14 @@ function renderTours() {
   }
 
   toursPanel.innerHTML = html;
+}
+
+function renderLoading() {
+  toursPanel.innerHTML = `
+    <div class="loading">
+      <span class="spinner"></span>
+      <span>Loading tours...</span>
+    </div>`;
 }
 
 function renderTourCard(tour) {
