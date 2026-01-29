@@ -47,6 +47,6 @@ jobs:
             *.css \
             icons/ \
             images/
-          gh release upload "posthog-tour-debugger@${VERSION}" "$ZIP_NAME" --clobber
+          gh release upload "v${VERSION}" "$ZIP_NAME" --clobber
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
