@@ -1,4 +1,5 @@
 const MIN_VERSION = '1.324.0';
+const POLL_INTERVAL_MS = 1000;
 
 function meetsMinVersion(version) {
   if (!version) return false;
@@ -594,7 +595,7 @@ async function pollActiveTour() {
 
 function startPolling() {
   stopPolling();
-  pollTimer = setInterval(pollActiveTour, 1000);
+  pollTimer = setInterval(pollActiveTour, POLL_INTERVAL_MS);
 }
 
 function stopPolling() {
@@ -621,4 +622,12 @@ refreshAll().then(startPolling);
 tourFilterInput?.addEventListener('input', (e) => {
   state.filterText = e.target.value.trim();
   renderTours();
+});
+
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) {
+    stopPolling();
+  } else {
+    refreshAll().then(startPolling);
+  }
 });
