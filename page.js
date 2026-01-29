@@ -207,22 +207,89 @@ if (!window.__PH_TOUR_DEBUGGER_INJECTED__) {
     }
   }
 
+  const highlightState = {
+    active: new Set(),
+    cleanupTimer: null
+  };
+
+  function ensureHighlightStyles() {
+    if (document.getElementById('ph-debug-highlight-style')) return;
+    const style = document.createElement('style');
+    style.id = 'ph-debug-highlight-style';
+    style.textContent = `
+      .ph-debug-highlight {
+        outline: 2px solid #F54E00 !important;
+        box-shadow: 0 0 0 2px rgba(245, 78, 0, 0.3) !important;
+        transition: outline 0.15s ease;
+      }`;
+    document.head.appendChild(style);
+  }
+
+  function clearHighlights() {
+    for (const el of highlightState.active) {
+      if (!el || !el.dataset) continue;
+      el.classList.remove('ph-debug-highlight');
+      if (el.dataset.phDebugOldOutline != null) {
+        el.style.outline = el.dataset.phDebugOldOutline;
+        delete el.dataset.phDebugOldOutline;
+      }
+      if (el.dataset.phDebugOldBoxShadow != null) {
+        el.style.boxShadow = el.dataset.phDebugOldBoxShadow;
+        delete el.dataset.phDebugOldBoxShadow;
+      }
+    }
+    highlightState.active.clear();
+    if (highlightState.cleanupTimer) {
+      clearTimeout(highlightState.cleanupTimer);
+      highlightState.cleanupTimer = null;
+    }
+  }
+
+  function applyHighlights(elements, ttlMs) {
+    ensureHighlightStyles();
+    clearHighlights();
+    elements.forEach((el) => {
+      if (!el || !el.style || !el.dataset) return;
+      el.dataset.phDebugOldOutline = el.style.outline || '';
+      el.dataset.phDebugOldBoxShadow = el.style.boxShadow || '';
+      el.classList.add('ph-debug-highlight');
+      highlightState.active.add(el);
+    });
+    highlightState.cleanupTimer = setTimeout(clearHighlights, ttlMs);
+  }
+
+  function analyzeSelector(selector) {
+    const elements = document.querySelectorAll(selector);
+    const count = elements.length;
+    let visible = 0;
+    elements.forEach((el) => {
+      const rect = el.getBoundingClientRect();
+      const style = window.getComputedStyle(el);
+      if (rect.width > 0 && rect.height > 0 && style.display !== 'none' && style.visibility !== 'hidden') {
+        visible++;
+      }
+    });
+    return { elements, count, visible };
+  }
+
   function handleCheckSelector(requestId, payload) {
     try {
       const selector = payload.selector;
-      const elements = document.querySelectorAll(selector);
-      const count = elements.length;
-      let visible = 0;
-      elements.forEach((el) => {
-        const rect = el.getBoundingClientRect();
-        const style = window.getComputedStyle(el);
-        if (rect.width > 0 && rect.height > 0 && style.display !== 'none' && style.visibility !== 'hidden') {
-          visible++;
-        }
-      });
+      const { count, visible } = analyzeSelector(selector);
       respond(requestId, 'checkSelector', { found: count > 0, count, visible });
     } catch (e) {
       respond(requestId, 'checkSelector', null, e.message);
+    }
+  }
+
+  function handleHighlightSelector(requestId, payload) {
+    try {
+      const selector = payload.selector;
+      const { elements, count, visible } = analyzeSelector(selector);
+      applyHighlights(elements, 2000);
+      respond(requestId, 'highlightSelector', { found: count > 0, count, visible });
+    } catch (e) {
+      respond(requestId, 'highlightSelector', null, e.message);
     }
   }
 
@@ -239,7 +306,8 @@ if (!window.__PH_TOUR_DEBUGGER_INJECTED__) {
     clearCache: handleClearCache,
     nextStep: handleNextStep,
     previousStep: handlePreviousStep,
-    checkSelector: handleCheckSelector
+    checkSelector: handleCheckSelector,
+    highlightSelector: handleHighlightSelector
   };
 
   window.addEventListener('message', (event) => {

@@ -35,6 +35,9 @@ const statusBar = document.getElementById('statusBar');
 const toursPanel = document.getElementById('toursPanel');
 const refreshBtn = document.getElementById('refreshBtn');
 const tourFilterInput = document.getElementById('tourFilterInput');
+const selectorInput = document.getElementById('selectorInput');
+const selectorTestBtn = document.getElementById('selectorTestBtn');
+const selectorResult = document.getElementById('selectorResult');
 
 // --- Messaging ---
 function getActiveTabId() {
@@ -265,6 +268,45 @@ function renderLoading() {
       <span class="spinner"></span>
       <span>Loading tours...</span>
     </div>`;
+}
+
+async function testSelector() {
+  const selector = selectorInput?.value.trim();
+  if (!selector) {
+    showToast('Enter a CSS selector to test', 'error');
+    if (selectorResult) {
+      selectorResult.className = 'selector-result';
+      selectorResult.textContent = '';
+    }
+    return;
+  }
+
+  if (selectorResult) {
+    selectorResult.className = 'selector-result';
+    selectorResult.textContent = 'Checking...';
+  }
+
+  const res = await sendAction('highlightSelector', { selector });
+  if (res.error) {
+    showToast(res.error, 'error');
+    if (selectorResult) {
+      selectorResult.className = 'selector-result fail';
+      selectorResult.textContent = 'Selector check failed';
+    }
+    return;
+  }
+
+  const data = res.data || {};
+  const found = !!data.found;
+  const count = Number(data.count || 0);
+  const visible = Number(data.visible || 0);
+
+  if (selectorResult) {
+    selectorResult.className = `selector-result ${found ? 'ok' : 'fail'}`;
+    selectorResult.textContent = found
+      ? `Found ${count} element(s), ${visible} visible`
+      : 'No elements found';
+  }
 }
 
 function renderTourCard(tour) {
@@ -622,6 +664,16 @@ refreshAll().then(startPolling);
 tourFilterInput?.addEventListener('input', (e) => {
   state.filterText = e.target.value.trim();
   renderTours();
+});
+
+selectorTestBtn?.addEventListener('click', () => {
+  testSelector();
+});
+
+selectorInput?.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    testSelector();
+  }
 });
 
 document.addEventListener('visibilitychange', () => {
