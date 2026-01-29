@@ -37,7 +37,11 @@ const refreshBtn = document.getElementById('refreshBtn');
 const tourFilterInput = document.getElementById('tourFilterInput');
 const selectorInput = document.getElementById('selectorInput');
 const selectorTestBtn = document.getElementById('selectorTestBtn');
+const selectorPickBtn = document.getElementById('selectorPickBtn');
 const selectorResult = document.getElementById('selectorResult');
+const selectorMode = document.getElementById('selectorMode');
+const selectorPreferData = document.getElementById('selectorPreferData');
+const selectorUseNthChild = document.getElementById('selectorUseNthChild');
 
 // --- Messaging ---
 function getActiveTabId() {
@@ -270,6 +274,44 @@ function renderLoading() {
     </div>`;
 }
 
+let pickInProgress = false;
+let lastPickedData = null;
+
+function getPickerOptions() {
+  return {
+    mode: selectorMode?.value || 'unique',
+    preferDataAttributes: selectorPreferData?.checked !== false,
+    useNthChild: selectorUseNthChild?.checked === true
+  };
+}
+
+function setPickInProgress(isPicking) {
+  pickInProgress = isPicking;
+  if (selectorPickBtn) {
+    selectorPickBtn.disabled = isPicking;
+    selectorPickBtn.textContent = isPicking ? 'Picking...' : 'Pick';
+  }
+}
+
+function updatePickDisplay() {
+  if (!lastPickedData) return;
+  const data = lastPickedData;
+  const preferMode = getPickerOptions().mode;
+  const selector = preferMode === 'simple'
+    ? (data.selector || data.uniqueSelector || '')
+    : (data.uniqueSelector || data.selector || '');
+  if (selectorInput) selectorInput.value = selector;
+
+  if (selectorResult) {
+    const idText = data.id ? `#${data.id}` : 'No ID';
+    const classesText = (data.classes || []).length ? `.${data.classes.join('.')}` : 'No classes';
+    selectorResult.className = 'selector-result ok';
+    const simple = data.selector ? `Simple: ${data.selector}` : '';
+    const unique = data.uniqueSelector ? `Unique: ${data.uniqueSelector}` : '';
+    selectorResult.textContent = `Picked ${data.tag || 'element'} (${idText}, ${classesText})${simple ? ` — ${simple}` : ''}${unique ? ` — ${unique}` : ''}`;
+  }
+}
+
 async function testSelector() {
   const selector = selectorInput?.value.trim();
   if (!selector) {
@@ -307,6 +349,29 @@ async function testSelector() {
       ? `Found ${count} element(s), ${visible} visible`
       : 'No elements found';
   }
+}
+
+async function pickSelector() {
+  if (pickInProgress) return;
+  setPickInProgress(true);
+  showToast('Click an element on the page', 'info');
+
+  const res = await sendAction('startPickSelector', getPickerOptions());
+  if (res.error) {
+    showToast(res.error, 'error');
+    if (selectorResult) {
+      selectorResult.className = 'selector-result fail';
+      selectorResult.textContent = res.error;
+    }
+    await sendAction('cancelPickSelector');
+    setPickInProgress(false);
+    return;
+  }
+
+  lastPickedData = res.data || null;
+  updatePickDisplay();
+
+  setPickInProgress(false);
 }
 
 function renderTourCard(tour) {
@@ -674,6 +739,14 @@ selectorInput?.addEventListener('keydown', (e) => {
   if (e.key === 'Enter') {
     testSelector();
   }
+});
+
+selectorPickBtn?.addEventListener('click', () => {
+  pickSelector();
+});
+
+selectorMode?.addEventListener('change', () => {
+  updatePickDisplay();
 });
 
 document.addEventListener('visibilitychange', () => {

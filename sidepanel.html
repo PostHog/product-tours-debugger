@@ -29,6 +29,24 @@
     <div class="selector-tester-row">
       <input id="selectorInput" class="selector-input" type="text" placeholder="Test a CSS selector (e.g. #cta, .btn-primary)">
       <button id="selectorTestBtn" class="btn btn-secondary btn-small">Test</button>
+      <button id="selectorPickBtn" class="btn btn-secondary btn-small">Pick</button>
+    </div>
+    <div class="selector-options">
+      <label class="selector-option">
+        <span>Use</span>
+        <select id="selectorMode" class="selector-select">
+          <option value="unique">Unique selector</option>
+          <option value="simple">Simple selector</option>
+        </select>
+      </label>
+      <label class="selector-option">
+        <input id="selectorPreferData" type="checkbox" checked>
+        <span>Prefer data-testid</span>
+      </label>
+      <label class="selector-option">
+        <input id="selectorUseNthChild" type="checkbox">
+        <span>Use nth-child</span>
+      </label>
     </div>
     <div id="selectorResult" class="selector-result"></div>
   </div>
