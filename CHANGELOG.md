@@ -1,5 +1,11 @@
 # posthog-tour-debugger
 
+## 1.0.2
+
+### Patch Changes
+
+- 6d15345: fixing release workflow
+
 ## 1.0.1
 
 ### Patch Changes
