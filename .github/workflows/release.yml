@@ -31,6 +31,7 @@ jobs:
         uses: changesets/action@v1
         with:
           version: npm run changeset-version
+          publish: echo "published"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
