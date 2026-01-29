@@ -1,5 +1,11 @@
 # posthog-tour-debugger
 
+## 1.0.3
+
+### Patch Changes
+
+- b9f680e: dummy to trigger release
+
 ## 1.0.2
 
 ### Patch Changes
