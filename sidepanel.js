@@ -24,13 +24,15 @@ const state = {
   toursContext: null,
   flags: {},
   flagDetails: {},
-  storage: { shown: {}, completed: {}, dismissed: {}, activeTour: null }
+  storage: { shown: {}, completed: {}, dismissed: {}, activeTour: null },
+  filterText: ''
 };
 
 // --- DOM refs ---
 const statusBar = document.getElementById('statusBar');
 const toursPanel = document.getElementById('toursPanel');
 const refreshBtn = document.getElementById('refreshBtn');
+const tourFilterInput = document.getElementById('tourFilterInput');
 
 // --- Messaging ---
 function getActiveTabId() {
@@ -217,10 +219,20 @@ function renderTours() {
       <button class="btn btn-secondary btn-small" data-action="clearCache">Clear Cache</button>
     </div>`;
 
-  if (state.tours.length === 0) {
-    html += '<div class="empty-state">No tours found</div>';
+  const filteredTours = state.tours.filter((tour) => {
+    if (!state.filterText) return true;
+    const id = String(tour.id || '').toLowerCase();
+    const name = String(tour.name || '').toLowerCase();
+    const query = state.filterText.toLowerCase();
+    return id.includes(query) || name.includes(query);
+  });
+
+  if (filteredTours.length === 0) {
+    html += state.filterText
+      ? '<div class="empty-state">No tours match the filter</div>'
+      : '<div class="empty-state">No tours found</div>';
   } else {
-    for (const tour of state.tours) {
+    for (const tour of filteredTours) {
       html += renderTourCard(tour);
     }
   }
@@ -570,3 +582,8 @@ chrome.tabs.onUpdated.addListener((_tabId, changeInfo) => {
 
 // --- Init ---
 refreshAll().then(startPolling);
+
+tourFilterInput?.addEventListener('input', (e) => {
+  state.filterText = e.target.value.trim();
+  renderTours();
+});
