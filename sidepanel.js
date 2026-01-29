@@ -120,6 +120,8 @@ async function refreshAll() {
     } else if (state.posthogDetected && state.versionOk) {
       await Promise.all([fetchFlags(), fetchStorage()]);
     }
+  } catch (error) {
+    showToast(error?.message || 'Refresh failed', 'error');
   } finally {
     setLoading(false);
     renderAll();
@@ -518,8 +520,17 @@ async function doAction(action, payload) {
   const res = await sendAction(action, payload);
   if (res.error) {
     console.warn(`Action ${action} failed:`, res.error);
+    showToast(res.error, 'error');
   }
   await refreshAll();
+}
+
+function showToast(message, type = 'info') {
+  const el = document.createElement('div');
+  el.className = `toast${type === 'error' ? ' error' : ''}`;
+  el.textContent = String(message || 'Something went wrong');
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 2500);
 }
 
 function showCopiedTooltip() {
