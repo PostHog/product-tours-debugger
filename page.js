@@ -1,6 +1,9 @@
 if (!window.__PH_TOUR_DEBUGGER_INJECTED__) {
   window.__PH_TOUR_DEBUGGER_INJECTED__ = true;
 
+  const PH_TOUR_PREFIX = 'ph_product_tour_';
+  const ACTIVE_TOUR_KEY = 'ph_active_product_tour';
+
   function serialize(obj) {
     try {
       return JSON.parse(JSON.stringify(obj));
@@ -89,7 +92,7 @@ if (!window.__PH_TOUR_DEBUGGER_INJECTED__) {
     try {
       for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
-        if (!key.startsWith('ph_product_tour_')) continue;
+        if (!key.startsWith(PH_TOUR_PREFIX)) continue;
 
         const value = localStorage.getItem(key);
         if (key.includes('_shown')) {
@@ -101,7 +104,7 @@ if (!window.__PH_TOUR_DEBUGGER_INJECTED__) {
         }
       }
 
-      const active = sessionStorage.getItem('ph_active_product_tour');
+      const active = sessionStorage.getItem(ACTIVE_TOUR_KEY);
       if (active) {
         try {
           result.activeTour = JSON.parse(active);
