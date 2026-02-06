@@ -18,7 +18,11 @@ chrome.webNavigation.onCommitted.addListener(async (details) => {
             typeof args[1] === 'string' &&
             args[1].includes('Starting in debug mode')) {
             if (args[2] && args[2]['this']) {
-              window.__POSTHOG_INSTANCE__ = args[2]['this'];
+              const instance = args[2]['this'];
+              // Skip PostHog's internal toolbar instance
+              if (instance.config?.name !== 'ph_toolbar_internal') {
+                window.__POSTHOG_INSTANCE__ = instance;
+              }
             }
           }
           return originalLog.apply(this, args);
