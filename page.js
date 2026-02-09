@@ -9,8 +9,14 @@ if (!window.__PH_TOUR_DEBUGGER_INJECTED__) {
     }
   }
 
+  function isToolbarInstance(ph) {
+    return ph.config?.name === 'ph_toolbar_internal';
+  }
+
   function getPostHog() {
-    return window.posthog || window.__POSTHOG_INSTANCE__;
+    if (window.posthog && !isToolbarInstance(window.posthog)) return window.posthog;
+    if (window.__POSTHOG_INSTANCE__ && !isToolbarInstance(window.__POSTHOG_INSTANCE__)) return window.__POSTHOG_INSTANCE__;
+    return null;
   }
 
   function respond(requestId, action, data, error) {
