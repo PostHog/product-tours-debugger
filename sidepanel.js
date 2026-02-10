@@ -19,6 +19,7 @@ const state = {
   version: null,
   versionOk: false,
   toursEnabled: false,
+  toursDisabledByConfig: false,
   pageUrl: null,
   tours: [],
   toursContext: null,
@@ -64,12 +65,14 @@ async function detect() {
     state.version = null;
     state.versionOk = false;
     state.toursEnabled = false;
+    state.toursDisabledByConfig = false;
     state.pageUrl = null;
   } else {
     state.posthogDetected = res.data.found;
     state.version = res.data.version;
     state.versionOk = meetsMinVersion(res.data.version);
     state.toursEnabled = res.data.toursEnabled;
+    state.toursDisabledByConfig = !!res.data.toursDisabledByConfig;
     state.pageUrl = res.data.pageUrl || null;
   }
 }
@@ -148,6 +151,17 @@ function renderStatus() {
       <div class="status-line">
         <span class="status-dot yellow"></span>
         <span>Tours API not available</span>
+      </div>`;
+  } else if (state.toursDisabledByConfig) {
+    statusBar.className = 'status-bar status-warn';
+    statusBar.innerHTML = `
+      <div class="status-line">
+        <span class="status-dot yellow"></span>
+        <span>PostHog v${esc(state.version || '?')} detected</span>
+      </div>
+      <div class="status-line">
+        <span class="status-dot yellow"></span>
+        <span>Set <code>disable_product_tours: false</code> in your PostHog config to enable tours</span>
       </div>`;
   } else {
     statusBar.className = 'status-bar status-ok';
