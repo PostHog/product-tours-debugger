@@ -1,5 +1,11 @@
 # posthog-tour-debugger
 
+## 1.0.4
+
+### Patch Changes
+
+- 74a4945: do not pick up posthog's posthog from toolbar
+
 ## 1.0.3
 
 ### Patch Changes
