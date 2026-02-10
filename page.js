@@ -38,6 +38,7 @@ if (!window.__PH_TOUR_DEBUGGER_INJECTED__) {
       found: true,
       version: ph.version || null,
       toursEnabled: !!(ph.productTours),
+      toursDisabledByConfig: !ph.config || ph.config.disable_product_tours !== false,
       pageUrl: window.location.href
     });
   }
