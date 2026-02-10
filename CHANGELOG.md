@@ -1,5 +1,11 @@
 # posthog-tour-debugger
 
+## 1.0.5
+
+### Patch Changes
+
+- a296b61: check disable_product_tours in health check
+
 ## 1.0.4
 
 ### Patch Changes
