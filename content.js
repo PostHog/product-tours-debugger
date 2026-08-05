@@ -4,10 +4,11 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   if (message.type !== 'PH_DEBUG_REQUEST') return false;
 
   const requestId = crypto.randomUUID();
+  const timeoutMs = message.action === 'startPickSelector' ? 30000 : 5000;
   const timeout = setTimeout(() => {
     pendingRequests.delete(requestId);
-    sendResponse({ data: null, error: 'Timeout: no response from page script (5s)' });
-  }, 5000);
+    sendResponse({ data: null, error: `Timeout: no response from page script (${timeoutMs / 1000}s)` });
+  }, timeoutMs);
 
   pendingRequests.set(requestId, { sendResponse, timeout });
 
