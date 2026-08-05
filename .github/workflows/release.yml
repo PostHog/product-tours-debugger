@@ -28,7 +28,11 @@ jobs:
 
       - name: Create release PR or publish
         id: changesets
-        uses: changesets/action@63a615b9cd06ba9a3e6d13796c7fbcb080a60a0b # v1.8.0
+        # v2 pushes release commits through the GitHub API by default
+        # (push-with-git-cli: false), so they carry GitHub's signature, which the
+        # org-wide signed-commits ruleset requires. Pinned to the v2 prerelease
+        # because that mode is not in v1.9.0, the current stable release.
+        uses: changesets/action@2d9f7af6402422be60d377f151c7618011bba45a # v2.0.0-next.4
         with:
           version: npm run changeset-version
           publish: npx changeset tag
